@@ -1,10 +1,13 @@
 import * as cdk from "@aws-cdk/core";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as sqs from "@aws-cdk/aws-sqs";
+import * as apigateway from "@aws-cdk/aws-apigateway";
 
 export class InfrastructureStack extends cdk.Stack {
     public readonly dynamoDbTableName: string;
     public readonly queueName: string;
+    public readonly restApiId: cdk.CfnOutput;
+    public readonly restApiRootResourceId: cdk.CfnOutput;
     public readonly queueUrl: cdk.CfnOutput;
     public readonly queueArn: cdk.CfnOutput;
 
@@ -41,6 +44,21 @@ export class InfrastructureStack extends cdk.Stack {
             encryption: dynamodb.TableEncryption.AWS_MANAGED,
             removalPolicy: cdk.RemovalPolicy.RETAIN,
             tableName: this.dynamoDbTableName,
+        });
+
+        const restApi = new apigateway.RestApi(this, "DashboardShowcaseRestApiGateway", {
+            deploy: false,
+        });
+        restApi.root.addMethod("GET");
+
+        this.restApiId = new cdk.CfnOutput(this, "restApiId", {
+            exportName: `rest-api-id`,
+            value: restApi.restApiId,
+        });
+
+        this.restApiRootResourceId = new cdk.CfnOutput(this, "restApiRootResourceId", {
+            exportName: `rest-api-root-resource-id`,
+            value: restApi.restApiRootResourceId,
         });
     }
 }

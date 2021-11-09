@@ -3,6 +3,7 @@
 
 **/node_modules
 **/build
-/cdk.out/
+!**/build/README.md
 **/out
 !**/out/README.md
+/cdk.out/

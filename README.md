@@ -18,20 +18,30 @@ For the scope of this showcase this is fine. In production code consider using t
 | /dashboard-showcase/twitter/api-secret   | API Secret for your Twitter Developer Account                                                                                                  |
 
 3. Adjust the values for the constants `OWNER`, `REPO` and `BRANCH` in the file `/bin/cicd.ts` to match the ones for your forked repo
-4. Run command `yarn && yarn cdk deploy --all --profile {YOUR_AWS_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+4. Run command `yarn && yarn cdk deploy --profile {YOUR_AWS_PROFILE_NAME} --region {YOUR_AWS_REGION} InfrastructureStack PipelineTwitterStoringLambdaStack PipelineTwitterPollingLambdaStack TimelineApiLambdaStack TimelineUiStack`
+5. Wait for all pipelines in Code-Pipeline to be green and then run `yarn cdk deploy --all --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
 
 ### Cleanup
 
 #### All
 
-`yarn cdk destroy PipelineTwitterStoringLambdaStack --profile {YOUR_PROFILE_NAME}`  
-`yarn cdk destroy PipelineTwitterPollingLambdaStack --profile {YOUR_PROFILE_NAME}`
-`yarn cdk destroy InfrastructureStack --profile {YOUR_PROFILE_NAME}`
+`yarn cdk destroy PipelineTwitterStoringLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`  
+`yarn cdk destroy PipelineTwitterPollingLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+`yarn cdk destroy TimelineApiLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+`yarn cdk destroy TimelineUiStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+`yarn cdk destroy ApiGatewayStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+`yarn cdk destroy InfrastructureStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+
+yarn cdk destroy InfrastructureStack --profile private --region eu-west-1
+
 
 #### Without InfrastructureStack
 
-`yarn cdk destroy PipelineTwitterStoringLambdaStack --profile {YOUR_PROFILE_NAME}`  
-`yarn cdk destroy PipelineTwitterPollingLambdaStack --profile {YOUR_PROFILE_NAME}`  
+`yarn cdk destroy PipelineTwitterStoringLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`  
+`yarn cdk destroy PipelineTwitterPollingLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`  
+`yarn cdk destroy TimelineApiLambdaStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`  
+`yarn cdk destroy TimelineUiStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
+`yarn cdk destroy ApiGatewayStack --profile {YOUR_PROFILE_NAME} --region {YOUR_AWS_REGION}`
 
 ### Trouble-Shooting
 During the execution of the command you might encounter the following message, especially if you have never used cdk (https://aws.amazon.com/de/cdk/) in your account:
@@ -41,7 +51,7 @@ Run the following command in order to setup an S3 bucket in this environment, an
 
 `yarn cdk bootstrap aws://<YOUR_AWS_ACCOUNT_NUMBER>/<YOUR_AWS_REGION> --profile {YOUR_AWS_PROFILE_NAME}`
 
-So you might have to execute this command first and then run `yarn cdk deploy --all --profile {YOUR_AWS_PROFILE_NAME}  --region {YOUR_AWS_REGION}` again.
+So you might have to execute this command first and then run `yarn cdk deploy --all --profile {YOUR_AWS_PROFILE_NAME} --region {YOUR_AWS_REGION}` again.
 
 When the deploy command executes you will be prompted to review the IAM statement changes that cdk is about to execute.
 

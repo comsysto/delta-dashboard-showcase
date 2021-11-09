@@ -1,8 +1,11 @@
 import * as cdk from "@aws-cdk/core";
 import {InfrastructureStack} from "./infrastructure/infrastructure-stack";
 import {YarnPipelineStack} from "./lambdas/yarn-pipeline-stack";
+import {ApiGatewayStack} from "./rest-api/api-gateway-stack";
 import {TwitterPollingLambdaApplication} from "./lambdas/twitter-polling-lambda-stack";
+import {TimelineUiApplication} from "./ui/timeline-ui-stack";
 import {TwitterStoringLambdaApplication} from "./lambdas/twitter-storing-lambda-stack";
+import {TimelineApiLambdaApplication} from "./lambdas/timeline-api-lambda-stack";
 
 export const buildApp = (app: cdk.App, repo: string, branch: string, owner: string) => {
     const region = app.region ?? "eu-west-1";
@@ -48,6 +51,25 @@ export const buildApp = (app: cdk.App, repo: string, branch: string, owner: stri
         }
     );
 
+    const timelineUiPipelineStack = new YarnPipelineStack(app, `TimelineUiPipelineStack`, {
+        env: {
+            region,
+        },
+        pathToProjectToBuild: "ts/timeline-ui",
+        ...repoProps,
+    });
+
+    const uiApplication = new TimelineUiApplication(
+        timelineUiPipelineStack,
+        "TimelineUiApplication",
+        {
+            pathToProjectToBuild: "ts/timeline-ui",
+            restApiGatewayId: infrastructureStack.restApiId,
+            restApiRootResourceId: infrastructureStack.restApiRootResourceId,
+        }
+    );
+    timelineUiPipelineStack.pipeline.addApplicationStage(uiApplication);
+
     storingLambdaPipelineStack.pipeline.addApplicationStage(
         new TwitterStoringLambdaApplication(
             storingLambdaPipelineStack,
@@ -59,4 +81,41 @@ export const buildApp = (app: cdk.App, repo: string, branch: string, owner: stri
             }
         )
     );
+
+    const timelineApiLambdaPipelineStack = new YarnPipelineStack(
+        app,
+        `TimelineApiLambdaPipelineStack`,
+        {
+            env: {
+                region,
+            },
+            pathToProjectToBuild: "ts/timeline-api",
+            ...repoProps,
+        }
+    );
+
+    const timelineApi = new TimelineApiLambdaApplication(
+        timelineApiLambdaPipelineStack,
+        `TimelineApiLambdaApplication`,
+        {
+            dynamoDBTableName: infrastructureStack.dynamoDbTableName,
+            pathToProjectToBuild: "ts/timeline-api",
+            restApiGatewayId: infrastructureStack.restApiId,
+            restApiRootResourceId: infrastructureStack.restApiRootResourceId,
+        }
+    );
+
+    timelineApiLambdaPipelineStack.pipeline.addApplicationStage(timelineApi);
+
+    new ApiGatewayStack(app, {
+        lambdaArn: timelineApi.stack.functionArn,
+        bucketArn: uiApplication.stack.bucketArn,
+        roleArn: uiApplication.stack.roleArn,
+        restApiId: infrastructureStack.restApiId,
+        rootResourceId: infrastructureStack.restApiRootResourceId,
+        stageName: "prod",
+        env: {
+            region,
+        }
+    });
 };
